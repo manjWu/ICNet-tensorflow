@@ -16,13 +16,13 @@ from tools import decode_labels
 IMG_MEAN = np.array((103.939, 116.779, 123.68), dtype=np.float32)
 # define setting & model configuration
 ADE20k_class = 150 # predict: [0~149] corresponding to label [1~150], ignore class 0 (background)
-cityscapes_class = 19
+cityscapes_class = 4
 
 model_paths = {'train': './model/icnet_cityscapes_train_30k.npy', 
               'trainval': './model/icnet_cityscapes_trainval_90k.npy',
               'train_bn': './model/icnet_cityscapes_train_30k_bnnomerge.npy',
               'trainval_bn': './model/icnet_cityscapes_trainval_90k_bnnomerge.npy',
-              'others': './model/'}
+              'others': './snapshots/'}
 
 # mapping different model
 model_config = {'train': ICNet, 'trainval': ICNet, 'train_bn': ICNet_BN, 'trainval_bn': ICNet_BN, 'others': ICNet_BN}
@@ -160,10 +160,11 @@ def main():
     model_path = model_paths[args.model]
     if args.model == 'others':
         ckpt = tf.train.get_checkpoint_state(model_path)
+        print("ckpt: ", ckpt)
         if ckpt and ckpt.model_checkpoint_path:
             loader = tf.train.Saver(var_list=tf.global_variables())
-            load_step = int(os.path.basename(ckpt.model_checkpoint_path).split('-')[1])
-            load(loader, sess, ckpt.model_checkpoint_path)
+            load_step = int(os.path.basename(ckpt.all_model_checkpoint_paths[3]).split('-')[1])
+            load(loader, sess, ckpt.all_model_checkpoint_paths[3])
         else:
             print('No checkpoint file found.')
     else:

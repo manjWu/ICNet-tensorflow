@@ -23,8 +23,8 @@ ADE20k_param = {'name': 'ade20k',
                 
 cityscapes_param = {'name': 'cityscapes',
                     'input_size': [1025, 2049],
-                    'num_classes': 19,
-                    'ignore_label': 255,
+                    'num_classes': 4,#3
+                    'ignore_label': 0,
                     'num_steps': 500,
                     'data_dir': '/data/cityscapes_dataset/cityscape', 
                     'data_list': './list/cityscapes_val_list.txt'}
@@ -142,7 +142,7 @@ def main():
         pred = tf.add(pred, tf.constant(1, dtype=tf.int64))
         mIoU, update_op = tf.contrib.metrics.streaming_mean_iou(pred, gt, num_classes=param['num_classes']+1)
     elif args.dataset == 'cityscapes':
-        mIoU, update_op = tf.contrib.metrics.streaming_mean_iou(pred, gt, num_classes=param['num_classes'])
+        mIoU, update_op = tf.contrib.metrics.streaming_mean_iou(pred, gt, num_classes=param['num_classes'])######+1
 
     # Set up tf session and initialize variables.
     config = tf.ConfigProto()

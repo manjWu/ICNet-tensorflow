@@ -60,7 +60,7 @@ class Network(object):
         '''Construct the network. '''
         raise NotImplementedError('Must be implemented by the subclass.')
 
-    def load(self, data_path, session, ignore_missing=False):
+    def load(self, data_path, session, ignore_missing=True):
         '''Load network weights.
         data_path: The path to the numpy-serialized network weights
         session: The current TensorFlow session
@@ -75,7 +75,8 @@ class Network(object):
                             param_name = BN_param_map[param_name]
 
                         var = tf.get_variable(param_name)
-                        session.run(var.assign(data))
+                        if 'conv6_cls' not in var.name:
+                            session.run(var.assign(data))
                     except ValueError:
                         if not ignore_missing:
                             raise

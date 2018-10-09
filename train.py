@@ -15,18 +15,28 @@ from model import ICNet_BN
 from tools import decode_labels, prepare_label
 from image_reader import ImageReader
 
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
+# config = tf.ConfigProto() 
+# config.gpu_options.per_process_gpu_memory_fraction = 0.9 # 占用GPU90%的显存 
+# session = tf.Session(config=config)
+
+
 IMG_MEAN = np.array((103.939, 116.779, 123.68), dtype=np.float32)
 
 # If you want to apply to other datasets, change following four lines
-DATA_DIR = '/PATH/TO/CITYSCAPES_DATASET'
-DATA_LIST_PATH = './list/cityscapes_train_list.txt' 
-IGNORE_LABEL = 255 # The class number of background
-INPUT_SIZE = '720, 720' # Input size for training
+# DATA_DIR = '/PATH/TO/CITYSCAPES_DATASET'
+DATA_DIR = '/'
+# DATA_LIST_PATH = './list/cityscapes_train_list.txt' 
+DATA_LIST_PATH = '/root/wmj-docker/ICNet-tensorflow/clear/train.txt' 
+IGNORE_LABEL = 0 # The class number of background
+INPUT_SIZE = '480, 480' # Input size for training
 
-BATCH_SIZE = 16 
-LEARNING_RATE = 1e-3
+BATCH_SIZE = 8
+LEARNING_RATE = 0.001
 MOMENTUM = 0.9
-NUM_CLASSES = 19
+NUM_CLASSES = 4 #19
 NUM_STEPS = 60001
 POWER = 0.9
 RANDOM_SEED = 1234
@@ -37,8 +47,8 @@ SAVE_NUM_IMAGES = 4
 SAVE_PRED_EVERY = 50
 
 # Loss Function = LAMBDA1 * sub4_loss + LAMBDA2 * sub24_loss + LAMBDA3 * sub124_loss
-LAMBDA1 = 0.16
-LAMBDA2 = 0.4
+LAMBDA1 = 0.4# 0.16
+LAMBDA2 = 0.6# 0.4
 LAMBDA3 = 1.0
 
 def get_arguments():
@@ -94,8 +104,8 @@ def load(saver, sess, ckpt_path):
     print("Restored model parameters from {}".format(ckpt_path))
 
 def get_mask(gt, num_classes, ignore_label):
-    less_equal_class = tf.less_equal(gt, num_classes-1)
-    not_equal_ignore = tf.not_equal(gt, ignore_label)
+    less_equal_class = tf.less_equal(gt, num_classes-1) # 判断每一个数是否小于等于num_classes-1
+    not_equal_ignore = tf.not_equal(gt, ignore_label) # 判断每一个数是否不等于ignore_label
     mask = tf.logical_and(less_equal_class, not_equal_ignore)
     indices = tf.squeeze(tf.where(mask), 1)
 
@@ -116,6 +126,7 @@ def create_loss(output, label, num_classes, ignore_label):
     return reduced_loss
 
 def main():
+    
     """Create the model and start the training."""
     args = get_arguments()
     
@@ -143,6 +154,7 @@ def main():
     sub124_out = net.layers['conv6_cls']
 
     restore_var = tf.global_variables()
+    # restore_var = [v for v in tf.global_variables() if 'conv6_cls' not in v.name]
     all_trainable = [v for v in tf.trainable_variables() if ('beta' not in v.name and 'gamma' not in v.name) or args.train_beta_gamma]
    
     loss_sub4 = create_loss(sub4_out, label_batch, args.num_classes, args.ignore_label)
@@ -169,6 +181,7 @@ def main():
         train_op = opt_conv.apply_gradients(zip(grads, all_trainable))
         
     # Set up tf session and initialize variables. 
+    # 先初始化所有变量
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     sess = tf.Session(config=config)
@@ -187,6 +200,12 @@ def main():
     else:
         print('Restore from pre-trained model...')
         net.load(args.restore_from, sess)
+        # args.restore_from:./model/icnet_cityscapes_trainval_90k_bnnomerge.npy
+        # net_data = np.load(open(args.restore_from,"rb"),encoding="latin1").item()
+        # loader = tf.train.Saver(var_list=exclude_restore_var)
+        # loader.restore(sess, net_data)
+        
+                
 
     # Start queue threads.
     threads = tf.train.start_queue_runners(coord=coord, sess=sess)

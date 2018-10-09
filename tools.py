@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image
 import tensorflow as tf
 
+'''
 label_colours = [[128, 64, 128], [244, 35, 231], [69, 69, 69]
                 # 0 = road, 1 = sidewalk, 2 = building
                 ,[102, 102, 156], [190, 153, 153], [153, 153, 153]
@@ -17,6 +18,10 @@ label_colours = [[128, 64, 128], [244, 35, 231], [69, 69, 69]
                 # 15 = bus, 16 = train, 17 = motocycle
                 ,[119, 10, 32]]
                 # 18 = bicycle
+'''
+    
+label_colours = [[0,0,0], [128, 0, 0], [0, 128, 0], [128, 128, 0]]
+                # 0 = background, 1 = dangerous1, 2 = dangerous2, 3 = warning
 
 matfn = './utils/color150.mat'
 def read_labelcolours(matfn):
