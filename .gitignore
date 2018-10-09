@@ -1,5 +1,6 @@
 
 *.npy
 .DS_Store
-clear/
+!clear
+clear/*
 !clear/*.txt
